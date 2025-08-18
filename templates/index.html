@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF AI Tool</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 40px; }
+        .upload-box { border: 2px dashed #888; padding: 20px; width: 320px; margin: auto; }
+        button { background: #4CAF50; color: white; padding: 10px 15px; margin-top: 10px; border: none; cursor: pointer; }
+        audio { margin-top: 20px; }
+        textarea { width: 80%; height: 200px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>📚 PDF AI Tool</h1>
+    <div class="upload-box">
+        <form id="pdfForm">
+            <input type="file" name="pdf" accept="application/pdf" required><br><br>
+            <input type="text" name="target_lang" placeholder="Target language code (e.g. en, my, fr)"><br><br>
+            <button type="button" onclick="pdfToAudio()">PDF → Audio</button>
+            <button type="button" onclick="pdfToTranslate()">PDF → Translate</button>
+            <button type="button" onclick="pdfToTranslateAudio()">PDF → Translate → Audio</button>
+        </form>
+    </div>
+
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+    <textarea id="translatedText" style="display:none;"></textarea>
+
+    <script>
+        async function pdfToAudio() {
+            let formData = new FormData(document.getElementById('pdfForm'));
+            let response = await fetch('/pdf-to-audio', { method: 'POST', body: formData });
+            if (response.ok) {
+                let blob = await response.blob();
+                playAudio(blob);
+            } else {
+                alert("Error converting PDF to Audio");
+            }
+        }
+
+        async function pdfToTranslate() {
+            let formData = new FormData(document.getElementById('pdfForm'));
+            let response = await fetch('/pdf-to-translate', { method: 'POST', body: formData });
+            if (response.ok) {
+                let data = await response.json();
+                document.getElementById('translatedText').style.display = 'block';
+                document.getElementById('translatedText').value = data.translated_text;
+            } else {
+                alert("Error translating PDF");
+            }
+        }
+
+        async function pdfToTranslateAudio() {
+            let formData = new FormData(document.getElementById('pdfForm'));
+            let response = await fetch('/pdf-to-translate-audio', { method: 'POST', body: formData });
+            if (response.ok) {
+                let blob = await response.blob();
+                playAudio(blob);
+            } else {
+                alert("Error translating PDF to Audio");
+            }
+        }
+
+        function playAudio(blob) {
+            let audioUrl = URL.createObjectURL(blob);
+            let player = document.getElementById('audioPlayer');
+            player.src = audioUrl;
+            player.style.display = 'block';
+            player.play();
+        }
+    </script>
+</body>
+</html>
