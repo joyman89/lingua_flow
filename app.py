@@ -2,8 +2,6 @@ import logging
 import subprocess
 import time
 from flask import Flask, request, send_file, jsonify, after_this_request
-from pyngrok import ngrok
-from pyngrok.exception import PyngrokNgrokError
 from PyPDF2 import PdfReader
 from PyPDF2.errors import PdfReadError
 from deep_translator import GoogleTranslator
@@ -23,7 +21,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_TEXT_LENGTH = 5000  # Max chars for translation/TTS
 VALID_STT_LANGS = ['en-US', 'fr-FR', 'es-ES', 'de-DE', 'my-MM']  # Supported STT languages
 
-# HTML content
+# HTML content (unchanged)
 INDEX_HTML = """
 <!DOCTYPE html>
 <html>
@@ -372,81 +370,8 @@ def audio_to_translate():
             except Exception as e:
                 logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
 
-# ---------------- Run ----------------
-def get_localtunnel_url():
-    """Attempt to run LocalTunnel and capture its URL."""
-    try:
-        # Start LocalTunnel in a subprocess
-        process = subprocess.Popen(
-            ['lt', '--port', '5000', '--local-host', '127.0.0.1'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        # Wait for the URL to appear in stdout (usually within a few seconds)
-        timeout = 10  # seconds
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            line = process.stdout.readline()
-            if 'your url is:' in line:
-                url = line.split('your url is: ')[1].strip()
-                return process, url
-            time.sleep(0.1)
-        # If no URL is found, check stderr for errors
-        stderr = process.stderr.read()
-        process.terminate()
-        raise RuntimeError(f"Failed to capture LocalTunnel URL within timeout. Stderr: {stderr}")
-    except FileNotFoundError:
-        logging.error("LocalTunnel (lt) not found. Ensure it is installed with `npm install -g localtunnel`.")
-        return None, None
-    except Exception as e:
-        logging.error(f"LocalTunnel failed: {str(e)}")
-        return None, None
-
 if __name__ == '__main__':
-    public_url = None
-    tunnel_process = None
-
-    # Try ngrok first
-    print("✅ Attempting to start ngrok tunnel...")
-    try:
-        public_url = ngrok.connect(5000, bind_tls=True).public_url
-        print(f"✅ Ngrok tunnel: {public_url}")
-    except PyngrokNgrokError as e:
-        logging.error(f"Ngrok failed to start: {str(e)}")
-        if "ERR_NGROK_9040" in str(e):
-            print("""
-❌ Ngrok Error (ERR_NGROK_9040): Your IP address (45.41.106.113) is restricted.
-Solutions:
-1. Contact support@ngrok.com with your account details and IP.
-2. Use a VPN to connect from a different IP (e.g., NordVPN, ExpressVPN).
-3. Using LocalTunnel as a fallback (see below).
-            """)
-        else:
-            print(f"❌ Ngrok Error: {str(e)}")
-
-    # If ngrok fails, try LocalTunnel
-    if not public_url:
-        print("✅ Attempting to start LocalTunnel...")
-        tunnel_process, public_url = get_localtunnel_url()
-        if public_url:
-            print(f"✅ LocalTunnel URL: {public_url}")
-        else:
-            print("""
-❌ LocalTunnel failed to start.
-Solutions:
-1. Ensure LocalTunnel is installed: `npm install -g localtunnel`
-2. Run `lt --port 5000 --local-host 127.0.0.1` in a separate PowerShell or Command Prompt and note the URL.
-3. Access the app locally at http://localhost:5000.
-            """)
-            public_url = "http://localhost:5000"
-
-    # Run the Flask app
-    print(f"✅ Starting Flask app at {public_url}...")
-    try:
-        app.run(port=5000)
-    finally:
-        # Clean up tunnel process if it was started
-        if tunnel_process:
-            tunnel_process.terminate()
-            print("✅ LocalTunnel process terminated.")
+    # Run Flask app (Render sets PORT via env var)
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+  
