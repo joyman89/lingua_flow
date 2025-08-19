@@ -10,7 +10,6 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import tempfile
 import os
-import ffmpeg  # Added for audio conversion
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -500,6 +499,17 @@ def ensure_wav(input_path: str) -> str:
     audio.set_channels(1).set_frame_rate(16000).export(wav_path, format='wav')
     return wav_path
 
+def convert_to_wav(audio_file) -> str:
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+    try:
+        # Use pydub to convert the uploaded file to wav
+        audio = AudioSegment.from_file(audio_file)
+        audio = audio.set_channels(1).set_frame_rate(16000)
+        audio.export(tf.name, format='wav')
+    except Exception as e:
+        raise ValueError(f"Audio conversion failed: {str(e)}")
+    return tf.name
+
 def stt_google(audio_path: str, language: str = 'en-US') -> str:
     language = validate_stt_lang(language)
     recognizer = sr.Recognizer()
@@ -583,30 +593,21 @@ def pdf_to_translate_audio():
 
 @app.route('/audio-to-text', methods=['POST'])
 def audio_to_text():
-    tmp_in = None
     try:
         audio = request.files.get('audio')
         stt_lang = request.form.get('stt_lang', 'en-US')
         if not audio:
             return "No audio uploaded", 400
         check_file_size(audio)
-        # Convert to wav before processing
         wav_path = convert_to_wav(audio)
         text = stt_google(wav_path, language=stt_lang)
         os.remove(wav_path)  # Clean up
         return jsonify({"text": text})
     except Exception as e:
         return str(e), 400
-    finally:
-        if tmp_in:
-            try:
-                os.unlink(tmp_in.name)
-            except Exception as e:
-                logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
 
 @app.route('/audio-to-translate', methods=['POST'])
 def audio_to_translate():
-    tmp_in = None
     try:
         audio = request.files.get('audio')
         stt_lang = request.form.get('stt_lang', 'en-US')
@@ -614,7 +615,6 @@ def audio_to_translate():
         if not audio:
             return "No audio uploaded", 400
         check_file_size(audio)
-        # Convert to wav before processing
         wav_path = convert_to_wav(audio)
         text = stt_google(wav_path, language=stt_lang)
         os.remove(wav_path)  # Clean up
@@ -622,16 +622,9 @@ def audio_to_translate():
         return jsonify({"text": text, "translated_text": translated})
     except Exception as e:
         return str(e), 400
-    finally:
-        if tmp_in:
-            try:
-                os.unlink(tmp_in.name)
-            except Exception as e:
-                logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
 
 @app.route('/audio-to-audio', methods=['POST'])
 def audio_to_audio():
-    tmp_in = None
     try:
         audio = request.files.get('audio')
         stt_lang = request.form.get('stt_lang', 'en-US')
@@ -639,11 +632,9 @@ def audio_to_audio():
         if not audio:
             return "No audio uploaded", 400
         check_file_size(audio)
-        # Convert to wav and get text
         wav_path = convert_to_wav(audio)
         text = stt_google(wav_path, language=stt_lang)
         os.remove(wav_path)  # Clean up
-        # Generate audio in target language
         mp3_path = tts_to_tempfile(text, target_lang)
 
         @after_this_request
@@ -657,26 +648,8 @@ def audio_to_audio():
         return send_file(mp3_path, mimetype='audio/mpeg', as_attachment=True, download_name='translated_audio.mp3')
     except Exception as e:
         return str(e), 400
-    finally:
-        if tmp_in:
-            try:
-                os.unlink(tmp_in.name)
-            except Exception as e:
-                logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
-
-def convert_to_wav(audio_file):
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
-    try:
-        # Use pydub to convert the uploaded file to wav
-        audio = AudioSegment.from_file(audio_file)
-        audio = audio.set_channels(1).set_frame_rate(16000)
-        audio.export(tf.name, format='wav')
-    except Exception as e:
-        raise ValueError(f"Audio conversion failed: {str(e)}")
-    return tf.name
 
 if __name__ == '__main__':
     # Run Flask app (Render sets PORT via env var)
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
