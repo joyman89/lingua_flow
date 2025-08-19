@@ -25,76 +25,237 @@ VALID_STT_LANGS = ['en-US', 'fr-FR', 'es-ES', 'de-DE', 'my-MM']  # Supported STT
 # HTML content (updated with audio-to-audio mode)
 INDEX_HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PDF ↔ Audio Translator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF & Audio Translator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body{background:linear-gradient(135deg,#6dd5ed,#2193b0);min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .card{max-width:760px;width:100%;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-    .hidden{display:none}
+    body {
+      background: linear-gradient(120deg, #1A1A2E, #16213E);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: #F9FAFB;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .container {
+      max-width: 550px;
+      width: 100%;
+      padding: 20px;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: rgba(43, 45, 66, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .header img {
+      max-width: 180px;
+      height: auto;
+      background: linear-gradient(90deg, #6B46C1, #4C51BF);
+      padding: 8px;
+      border-radius: 8px;
+      transition: transform 0.3s;
+    }
+    .header img:hover {
+      transform: scale(1.05);
+    }
+    .card {
+      background: rgba(45, 45, 70, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(107, 70, 193, 0.2);
+    }
+    .intro {
+      text-align: center;
+      color: #BBDEF0;
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      font-weight: 700;
+      color: #E6ECEF;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .form-control {
+      background: linear-gradient(135deg, #3D3D5A, #4A4A70);
+      border: 2px solid #5A5A7A;
+      color: #F9FAFB;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      width: 100%;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-control:focus {
+      border-color: #8E49F5;
+      box-shadow: 0 0 10px rgba(142, 73, 245, 0.6);
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #6B46C1, #4C51BF);
+      border: none;
+      padding: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      width: 100;
+      font-size: 1.1rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, background 0.3s;
+    }
+    .btn-primary:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #7C3AED, #5B21B6);
+    }
+    .progress {
+      height: 10px;
+      background: #3D3D5A;
+      border-radius: 5px;
+      margin-top: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, #6B46C1, #4C51BF);
+      border-right: 2px solid #A5B4FC44;
+    }
+    .output {
+      margin-top: 25px;
+      color: #E6ECEF;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    #player, #outputText {
+      width: 100%;
+      background: linear-gradient(135deg, #3D3D5A, #4A4A70);
+      border: 2px solid #5A5A7A;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    #outputText {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .hidden {
+      display: none;
+    }
+    .features {
+      margin-top: 25px;
+      font-size: 0.9rem;
+      color: #BBDEF0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .feature-item {
+      margin-bottom: 12px;
+      padding-left: 10px;
+      border-left: 3px solid #6B46C1;
+    }
+    .footer {
+      text-align: center;
+      padding: 15px;
+      color: #A0AEC0;
+      font-size: 0.8rem;
+      background: rgba(43, 45, 66, 0.9);
+      border-top: 1px solid #4A4A70;
+      margin-top: auto;
+    }
+    @media (max-width: 576px) {
+      .container { padding: 10px; }
+      .card { padding: 20px; }
+      .header img { max-width: 140px; }
+      .intro { font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
-  <div class="card p-4">
-    <h3 class="text-center mb-3">📚 PDF ↔ Audio Translator</h3>
-    <p class="text-center text-muted">Six modes: PDF→Audio, PDF→Translate, PDF→Translate→Audio, Audio→Text, Audio→Translate, Audio→Audio</p>
-
-    <form id="toolForm">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Mode</label>
-          <select class="form-select" id="mode" name="mode">
-            <option value="pdf_audio">PDF → Audio</option>
-            <option value="pdf_translate">PDF → Translate (text)</option>
-            <option value="pdf_translate_audio">PDF → Translate → Audio</option>
-            <option value="audio_text">Audio → Text</option>
-            <option value="audio_translate">Audio → Translate Text</option>
-            <option value="audio_audio">Audio → Audio</option>
+  <div class="container">
+    <div class="header">
+      <img src="https://via.placeholder.com/180x60?text=PDF+AI" alt="PDF AI Logo" />
+    </div>
+    <div class="intro">
+      Transform your documents and audio with AI-powered processing. Extract, translate, and convert between text and speech with ease.<br>
+      <strong>Fast Processing | AI Powered | 20+ Languages</strong>
+    </div>
+    <div class="card">
+      <form id="toolForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Choose Your Processing Mode</label>
+          <select class="form-control" id="mode" name="mode">
+            <option value="pdf_audio">PDF → Audio<br>Convert PDF text to speech</option>
+            <option value="pdf_translate">PDF → Translate<br>Extract and translate PDF text</option>
+            <option value="pdf_translate_audio">PDF → Translate → Audio<br>Translate PDF then convert to speech</option>
+            <option value="audio_text">Audio → Text<br>Convert speech to text</option>
+            <option value="audio_translate">Audio → Translate<br>Convert speech to text and translate</option>
           </select>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Target Language (for translate / TTS)</label>
-          <select class="form-select" id="lang" name="lang">
-            <option value="en">English (en)</option>
-            <option value="my">Myanmar (my)</option>
-            <option value="fr">French (fr)</option>
-            <option value="es">Spanish (es)</option>
-            <option value="de">German (de)</option>
+        <div class="form-group">
+          <label class="form-label">Target Language</label>
+          <select class="form-control" id="lang" name="lang">
+            <option value="en">English</option>
+            <option value="my">Myanmar</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="de">German</option>
           </select>
         </div>
-      </div>
-
-      <div class="row g-3 mt-1">
-        <div class="col-md-6" id="pdfInput">
-          <label class="form-label">PDF File</label>
+        <div class="form-group" id="pdfInput">
+          <label class="form-label">1. Upload File</label>
           <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf" />
+          <div>No file chosen</div>
         </div>
-        <div class="col-md-6 hidden" id="audioInput">
-          <label class="form-label">Audio File (wav/mp3/m4a)</label>
+        <div class="form-group hidden" id="audioInput">
+          <label class="form-label">1. Upload File</label>
           <input type="file" class="form-control" id="audio" name="audio" accept="audio/*" />
+          <div>Drag & drop your audio file here, or click to browse<br>Supported: MP3, WAV, M4A, OGG</div>
         </div>
-      </div>
-
-      <div class="row g-3 mt-1 hidden" id="sttLangRow">
-        <div class="col-md-6">
-          <label class="form-label">Speech Language (for STT)</label>
-          <input type="text" class="form-control" id="stt_lang" name="stt_lang" placeholder="en-US (e.g., en-US, fr-FR, es-ES)" value="en-US" />
+        <div class="form-group hidden" id="sttLangRow">
+          <label class="form-label">Speech Language</label>
+          <input type="text" class="form-control" id="stt_lang" name="stt_lang" placeholder="en-US (e.g., en-US, fr-FR)" value="en-US" />
         </div>
+        <button type="submit" class="btn btn-primary">2. Process<br>Start Processing<br>Please upload a file first</button>
+        <div class="progress hidden" id="progressWrap">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+        </div>
+      </form>
+      <div class="output">
+        <div>Results</div>
+        <audio id="player" class="hidden" controls></audio>
+        <textarea id="outputText" class="form-control hidden" placeholder="Results will appear here<br>Upload a file and start processing to see results"></textarea>
       </div>
-
-      <button class="btn btn-primary w-100 mt-3" type="submit">Run</button>
-
-      <div class="progress mt-3 hidden" id="progressWrap">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%">Processing…</div>
+      <div class="features">
+        <div class="feature-item"><strong>Powerful AI Processing Features</strong></div>
+        <div class="feature-item">PDF Text Extraction<br>Extract text from any PDF document with OCR support</div>
+        <div class="feature-item">Multi-Language Translation<br>Translate between 20+ languages instantly</div>
+        <div class="feature-item">Text-to-Speech<br>Convert text to natural-sounding audio</div>
+        <div class="feature-item">Speech Recognition<br>Convert audio to accurate text transcription</div>
       </div>
-    </form>
-
-    <div class="mt-3">
-      <audio id="player" class="w-100 hidden" controls></audio>
-      <textarea id="outputText" class="form-control hidden" rows="10" placeholder="Result text will appear here..."></textarea>
+    </div>
+    <div class="footer">
+      © A&T Group Strategy First AI Hackathon 2025
     </div>
   </div>
 
@@ -103,23 +264,34 @@ INDEX_HTML = """
     const pdfInput = document.getElementById('pdfInput');
     const audioInput = document.getElementById('audioInput');
     const sttLangRow = document.getElementById('sttLangRow');
+    const progressWrap = document.getElementById('progressWrap');
+    const player = document.getElementById('player');
+    const outputText = document.getElementById('outputText');
+    const pdfFileInput = document.getElementById('pdf');
+    const audioFileInput = document.getElementById('audio');
 
-    function updateFormVisibility(){
+    function updateFormVisibility() {
       const m = modeSel.value;
       const pdfNeeded = (m === 'pdf_audio' || m === 'pdf_translate' || m === 'pdf_translate_audio');
       pdfInput.classList.toggle('hidden', !pdfNeeded);
       audioInput.classList.toggle('hidden', pdfNeeded);
-      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate' || m === 'audio_audio'));
+      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate'));
+      updateFileStatus();
     }
+
+    function updateFileStatus() {
+      const pdfFile = pdfFileInput.files[0];
+      const audioFile = audioFileInput.files[0];
+      if (pdfFile) pdfInput.querySelector('div').textContent = pdfFile.name;
+      if (audioFile) audioInput.querySelector('div').textContent = audioFile.name;
+    }
+
     modeSel.addEventListener('change', updateFormVisibility);
+    pdfFileInput.addEventListener('change', updateFileStatus);
+    audioFileInput.addEventListener('change', updateFileStatus);
     updateFormVisibility();
 
-    const form = document.getElementById('toolForm');
-    const progressWrap = document.getElementById('progressWrap');
-    const player = document.getElementById('player');
-    const outputText = document.getElementById('outputText');
-
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('toolForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       progressWrap.classList.remove('hidden');
       player.classList.add('hidden');
@@ -134,8 +306,8 @@ INDEX_HTML = """
       const fd = new FormData();
       if (m.startsWith('pdf')) {
         const pdf = document.getElementById('pdf').files[0];
-        if (!pdf) { alert('Please choose a PDF.'); progressWrap.classList.add('hidden'); return; }
-        if (pdf.size > maxFileSize) { alert('PDF file is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
+        if (!pdf) { alert('Please choose a document.'); progressWrap.classList.add('hidden'); return; }
+        if (pdf.size > maxFileSize) { alert('Document file is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
         fd.append('pdf', pdf);
         fd.append('lang', lang);
       } else {
