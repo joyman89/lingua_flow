@@ -22,7 +22,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_TEXT_LENGTH = 5000  # Max chars for translation/TTS
 VALID_STT_LANGS = ['en-US', 'fr-FR', 'es-ES', 'de-DE', 'my-MM']  # Supported STT languages
 
-# HTML content (unchanged for now—move to templates later if desired)
+# HTML content (updated with audio-to-audio mode)
 INDEX_HTML = """
 <!DOCTYPE html>
 <html>
@@ -40,7 +40,7 @@ INDEX_HTML = """
 <body>
   <div class="card p-4">
     <h3 class="text-center mb-3">📚 PDF ↔ Audio Translator</h3>
-    <p class="text-center text-muted">Five modes: PDF→Audio, PDF→Translate, PDF→Translate→Audio, Audio→Text, Audio→Translate</p>
+    <p class="text-center text-muted">Six modes: PDF→Audio, PDF→Translate, PDF→Translate→Audio, Audio→Text, Audio→Translate, Audio→Audio</p>
 
     <form id="toolForm">
       <div class="row g-3">
@@ -52,6 +52,7 @@ INDEX_HTML = """
             <option value="pdf_translate_audio">PDF → Translate → Audio</option>
             <option value="audio_text">Audio → Text</option>
             <option value="audio_translate">Audio → Translate Text</option>
+            <option value="audio_audio">Audio → Audio</option>
           </select>
         </div>
         <div class="col-md-6">
@@ -108,7 +109,7 @@ INDEX_HTML = """
       const pdfNeeded = (m === 'pdf_audio' || m === 'pdf_translate' || m === 'pdf_translate_audio');
       pdfInput.classList.toggle('hidden', !pdfNeeded);
       audioInput.classList.toggle('hidden', pdfNeeded);
-      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate'));
+      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate' || m === 'audio_audio'));
     }
     modeSel.addEventListener('change', updateFormVisibility);
     updateFormVisibility();
@@ -151,7 +152,8 @@ INDEX_HTML = """
         pdf_translate: '/pdf-to-translate',
         pdf_translate_audio: '/pdf-to-translate-audio',
         audio_text: '/audio-to-text',
-        audio_translate: '/audio-to-translate'
+        audio_translate: '/audio-to-translate',
+        audio_audio: '/audio-to-audio'
       };
 
       try {
@@ -163,7 +165,7 @@ INDEX_HTML = """
           return;
         }
 
-        if (m === 'pdf_audio' || m === 'pdf_translate_audio') {
+        if (m === 'pdf_audio' || m === 'pdf_translate_audio' || m === 'audio_audio') {
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);
           player.src = url;
@@ -360,6 +362,41 @@ def audio_to_translate():
         os.remove(wav_path)  # Clean up
         translated = GoogleTranslator(source='auto', target=target).translate(text)
         return jsonify({"text": text, "translated_text": translated})
+    except Exception as e:
+        return str(e), 400
+    finally:
+        if tmp_in:
+            try:
+                os.unlink(tmp_in.name)
+            except Exception as e:
+                logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
+
+@app.route('/audio-to-audio', methods=['POST'])
+def audio_to_audio():
+    tmp_in = None
+    try:
+        audio = request.files.get('audio')
+        stt_lang = request.form.get('stt_lang', 'en-US')
+        target_lang = request.form.get('lang', 'en')
+        if not audio:
+            return "No audio uploaded", 400
+        check_file_size(audio)
+        # Convert to wav and get text
+        wav_path = convert_to_wav(audio)
+        text = stt_google(wav_path, language=stt_lang)
+        os.remove(wav_path)  # Clean up
+        # Generate audio in target language
+        mp3_path = tts_to_tempfile(text, target_lang)
+
+        @after_this_request
+        def cleanup(response):
+            try:
+                os.remove(mp3_path)
+            except Exception as e:
+                logging.error(f"Failed to delete temp file {mp3_path}: {e}")
+            return response
+
+        return send_file(mp3_path, mimetype='audio/mpeg', as_attachment=True, download_name='translated_audio.mp3')
     except Exception as e:
         return str(e), 400
     finally:
