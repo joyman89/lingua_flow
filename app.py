@@ -34,167 +34,253 @@ INDEX_HTML = """
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
-      background: linear-gradient(120deg, #1A1A2E, #16213E);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      color: #F9FAFB;
-      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0F172A, #1E293B);
+      height: 100vh;
       margin: 0;
       padding: 0;
-      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      position: relative;
     }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    body::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(107, 70, 193, 0.1) 0%, transparent 70%);
+      animation: pulse 10s infinite;
+      z-index: -1;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
     .container {
-      max-width: 550px;
+      max-width: 600px;
       width: 100%;
       padding: 20px;
       flex: 1;
+      z-index: 1;
     }
     .header {
       text-align: center;
-      margin-bottom: 30px;
-      padding: 15px;
-      background: rgba(43, 45, 66, 0.9);
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 40px;
+      padding: 20px;
+      background: linear-gradient(90deg, #2D2D44, #3A3A5A);
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      transform: perspective(500px) rotateX(5deg);
+      transition: transform 0.3s;
+    }
+    .header:hover {
+      transform: perspective(500px) rotateX(0deg) scale(1.02);
     }
     .header img {
-      max-width: 180px;
+      max-width: 200px;
       height: auto;
       background: linear-gradient(90deg, #6B46C1, #4C51BF);
-      padding: 8px;
-      border-radius: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3);
       transition: transform 0.3s;
     }
     .header img:hover {
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
     .card {
-      background: rgba(45, 45, 70, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(107, 70, 193, 0.2);
+      background: linear-gradient(135deg, #2D2D44, #3A3A5A);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(107, 70, 193, 0.2);
+      border: 1px solid #5A5A7A;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(107, 70, 193, 0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+      z-index: -1;
+    }
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .intro {
       text-align: center;
-      color: #BBDEF0;
-      margin-bottom: 25px;
-      font-size: 0.95rem;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      color: #A5C9FF;
+      margin-bottom: 30px;
+      font-size: 1rem;
+      text-shadow: 0 0 10px rgba(165, 201, 255, 0.3), 0 0 20px rgba(107, 70, 193, 0.2);
+      padding: 15px;
+      background: rgba(45, 45, 70, 0.9);
+      border-radius: 10px;
     }
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     .form-label {
       font-weight: 700;
       color: #E6ECEF;
-      font-size: 1rem;
-      margin-bottom: 8px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 5px rgba(230, 236, 239, 0.3);
     }
     .form-control {
       background: linear-gradient(135deg, #3D3D5A, #4A4A70);
-      border: 2px solid #5A5A7A;
+      border: 2px solid #6B7280;
       color: #F9FAFB;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 0.95rem;
+      border-radius: 10px;
+      padding: 12px 15px;
+      font-size: 1rem;
       width: 100%;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      transition: all 0.3s ease;
+      position: relative;
     }
     .form-control:focus {
-      border-color: #8E49F5;
-      box-shadow: 0 0 10px rgba(142, 73, 245, 0.6);
-      outline: none;
+      border-color: #A855F7;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.2);
+      transform: scale(1.02);
+    }
+    .form-control::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #6B46C1, #4C51BF);
+      z-index: -1;
+      border-radius: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .form-control:focus::before {
+      opacity: 0.1;
     }
     .btn-primary {
       background: linear-gradient(90deg, #6B46C1, #4C51BF);
       border: none;
-      padding: 12px;
+      padding: 14px;
       font-weight: 700;
-      border-radius: 8px;
+      border-radius: 10px;
       width: 100;
-      font-size: 1.1rem;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s, background 0.3s;
+      font-size: 1.2rem;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+      z-index: 0;
+    }
+    .btn-primary:hover::after {
+      width: 300%;
+      height: 300%;
     }
     .btn-primary:hover {
       transform: scale(1.05);
       background: linear-gradient(90deg, #7C3AED, #5B21B6);
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
     }
     .progress {
-      height: 10px;
+      height: 12px;
       background: #3D3D5A;
-      border-radius: 5px;
-      margin-top: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
       overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
     }
     .progress-bar {
       background: linear-gradient(90deg, #6B46C1, #4C51BF);
-      border-right: 2px solid #A5B4FC44;
+      box-shadow: 0 0 10px rgba(107, 70, 193, 0.3);
+      border-right: 3px solid #A5B4FC55;
     }
     .output {
-      margin-top: 25px;
+      margin-top: 30px;
       color: #E6ECEF;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      text-shadow: 0 0 5px rgba(230, 236, 239, 0.3);
     }
     #player, #outputText {
       width: 100%;
       background: linear-gradient(135deg, #3D3D5A, #4A4A70);
-      border: 2px solid #5A5A7A;
-      border-radius: 8px;
-      padding: 12px;
+      border: 2px solid #6B7280;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
     #outputText {
       resize: vertical;
-      min-height: 120px;
+      min-height: 150px;
     }
     .hidden {
       display: none;
     }
     .features {
-      margin-top: 25px;
-      font-size: 0.9rem;
-      color: #BBDEF0;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
+      font-size: 0.95rem;
+      color: #A5C9FF;
+      text-shadow: 0 0 5px rgba(165, 201, 255, 0.3);
     }
     .feature-item {
-      margin-bottom: 12px;
-      padding-left: 10px;
-      border-left: 3px solid #6B46C1;
+      margin-bottom: 15px;
+      padding-left: 15px;
+      border-left: 4px solid #6B46C1;
+      background: rgba(45, 45, 70, 0.9);
+      padding: 10px;
+      border-radius: 5px;
+      transition: transform 0.3s;
+    }
+    .feature-item:hover {
+      transform: translateX(10px);
     }
     .footer {
       text-align: center;
-      padding: 15px;
+      padding: 20px;
       color: #A0AEC0;
-      font-size: 0.8rem;
-      background: rgba(43, 45, 66, 0.9);
-      border-top: 1px solid #4A4A70;
+      font-size: 0.9rem;
+      background: linear-gradient(90deg, #2D2D44, #3A3A5A);
+      border-top: 1px solid #5A5A7A;
       margin-top: auto;
+      animation: fadeIn 2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
     }
     @media (max-width: 576px) {
       .container { padding: 10px; }
       .card { padding: 20px; }
-      .header img { max-width: 140px; }
-      .intro { font-size: 0.85rem; }
+      .header img { max-width: 150px; }
+      .intro { font-size: 0.9rem; }
+      .footer { font-size: 0.8rem; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://via.placeholder.com/180x60?text=PDF+AI" alt="PDF AI Logo" />
+      <img src="https://via.placeholder.com/200x70?text=PDF+AI" alt="PDF AI Logo" />
     </div>
     <div class="intro">
       Transform your documents and audio with AI-powered processing. Extract, translate, and convert between text and speech with ease.<br>
@@ -593,3 +679,4 @@ if __name__ == '__main__':
     # Run Flask app (Render sets PORT via env var)
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
