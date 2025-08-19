@@ -10,6 +10,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import tempfile
 import os
+import ffmpeg  # Added for audio conversion
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +22,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_TEXT_LENGTH = 5000  # Max chars for translation/TTS
 VALID_STT_LANGS = ['en-US', 'fr-FR', 'es-ES', 'de-DE', 'my-MM']  # Supported STT languages
 
-# HTML content (unchanged)
+# HTML content (unchanged for now—move to templates later if desired)
 INDEX_HTML = """
 <!DOCTYPE html>
 <html>
@@ -329,11 +330,10 @@ def audio_to_text():
         if not audio:
             return "No audio uploaded", 400
         check_file_size(audio)
-        ext = '.' + audio.filename.rsplit('.', 1)[-1] if '.' in audio.filename else '.tmp'
-        tmp_in = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
-        audio.save(tmp_in.name)
-        tmp_in.close()
-        text = stt_google(tmp_in.name, language=stt_lang)
+        # Convert to wav before processing
+        wav_path = convert_to_wav(audio)
+        text = stt_google(wav_path, language=stt_lang)
+        os.remove(wav_path)  # Clean up
         return jsonify({"text": text})
     except Exception as e:
         return str(e), 400
@@ -354,11 +354,10 @@ def audio_to_translate():
         if not audio:
             return "No audio uploaded", 400
         check_file_size(audio)
-        ext = '.' + audio.filename.rsplit('.', 1)[-1] if '.' in audio.filename else '.tmp'
-        tmp_in = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
-        audio.save(tmp_in.name)
-        tmp_in.close()
-        text = stt_google(tmp_in.name, language=stt_lang)
+        # Convert to wav before processing
+        wav_path = convert_to_wav(audio)
+        text = stt_google(wav_path, language=stt_lang)
+        os.remove(wav_path)  # Clean up
         translated = GoogleTranslator(source='auto', target=target).translate(text)
         return jsonify({"text": text, "translated_text": translated})
     except Exception as e:
@@ -370,8 +369,18 @@ def audio_to_translate():
             except Exception as e:
                 logging.error(f"Failed to delete temp file {tmp_in.name}: {e}")
 
+def convert_to_wav(audio_file):
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+    try:
+        # Use pydub to convert the uploaded file to wav
+        audio = AudioSegment.from_file(audio_file)
+        audio = audio.set_channels(1).set_frame_rate(16000)
+        audio.export(tf.name, format='wav')
+    except Exception as e:
+        raise ValueError(f"Audio conversion failed: {str(e)}")
+    return tf.name
+
 if __name__ == '__main__':
     # Run Flask app (Render sets PORT via env var)
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-  
