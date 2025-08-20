@@ -27,323 +27,286 @@ INDEX_HTML = """
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PDF & Audio Translator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF AI – Transform Documents & Audio with AI</title>
+  <!-- Tailwind (CDN for quick drop-in) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed', // primary accent (close to #7C3AED)
+              700: '#6b21a8',
+              800: '#581c87',
+              900: '#3b0764'
+            },
+            ink: {
+              100: '#E6ECEF',
+              200: '#C9D4DA',
+              300: '#A0AEC0',
+              400: '#94A3B8',
+              700: '#1F2937',
+              900: '#0B1020'
+            }
+          },
+          boxShadow: {
+            glass: '0 10px 30px rgba(0,0,0,.35)'
+          },
+          backdropBlur: {
+            xs: '2px'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      background: linear-gradient(135deg, #0F172A, #1E293B);
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
+    :root{
+      --bg-start:#0f172a; /* slate-900 */
+      --bg-end:#111827;   /* gray-900  */
+      --grad-1:#1A1A2E;   /* matches your current theme */
+      --grad-2:#16213E;
+      --logo-grad-1:#6B46C1; /* keep logo/icon color family */
+      --logo-grad-2:#4C51BF;
     }
-    body::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle, rgba(107, 70, 193, 0.1) 0%, transparent 70%);
-      animation: pulse 10s infinite;
-      z-index: -1;
+    html,body{height:100%}
+    body{font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .animated-bg{
+      background: linear-gradient(120deg, var(--grad-1), var(--grad-2));
+      background-size: 400% 400%;
+      animation: gradientShift 18s ease infinite;
     }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
     }
-    .container {
-      max-width: 600px;
-      width: 100%;
-      padding: 20px;
-      flex: 1;
-      z-index: 1;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 20px;
-      background: linear-gradient(90deg, #2D2D44, #3A3A5A);
-      border-radius: 15px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      transform: perspective(500px) rotateX(5deg);
-      transition: transform 0.3s;
-    }
-    .header:hover {
-      transform: perspective(500px) rotateX(0deg) scale(1.02);
-    }
-    .header img {
-      max-width: 200px;
-      height: auto;
-      background: linear-gradient(90deg, #6B46C1, #4C51BF);
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3);
-      transition: transform 0.3s;
-    }
-    .header img:hover {
-      transform: scale(1.1);
-    }
-    .card {
-      background: linear-gradient(135deg, #2D2D44, #3A3A5A);
-      border-radius: 20px;
-      padding: 35px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(107, 70, 193, 0.2);
-      border: 1px solid #5A5A7A;
-      position: relative;
-      overflow: hidden;
-      transform-style: preserve-3d;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(107, 70, 193, 0.1) 0%, transparent 70%);
-      animation: rotate 20s linear infinite;
-      z-index: -1;
-    }
-    @keyframes rotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .intro {
-      text-align: center;
-      color: #A5C9FF;
-      margin-bottom: 30px;
-      font-size: 1rem;
-      text-shadow: 0 0 10px rgba(165, 201, 255, 0.3), 0 0 20px rgba(107, 70, 193, 0.2);
-      padding: 15px;
-      background: rgba(45, 45, 70, 0.9);
-      border-radius: 10px;
-    }
-    .form-group {
-      margin-bottom: 25px;
-    }
-    .form-label {
-      font-weight: 700;
-      color: #E6ECEF;
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      text-shadow: 0 0 5px rgba(230, 236, 239, 0.3);
-    }
-    .form-control {
-      background: linear-gradient(135deg, #3D3D5A, #4A4A70);
-      border: 2px solid #6B7280;
-      color: #F9FAFB;
-      border-radius: 10px;
-      padding: 12px 15px;
-      font-size: 1rem;
-      width: 100%;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    .form-control:focus {
-      border-color: #A855F7;
-      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.2);
-      transform: scale(1.02);
-    }
-    .form-control::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #6B46C1, #4C51BF);
-      z-index: -1;
-      border-radius: 12px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .form-control:focus::before {
-      opacity: 0.1;
-    }
-    .btn-primary {
-      background: linear-gradient(90deg, #6B46C1, #4C51BF);
-      border: none;
-      padding: 14px;
-      font-weight: 700;
-      border-radius: 10px;
-      width: 100;
-      font-size: 1.2rem;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .btn-primary::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-      z-index: 0;
-    }
-    .btn-primary:hover::after {
-      width: 300%;
-      height: 300%;
-    }
-    .btn-primary:hover {
-      transform: scale(1.05);
-      background: linear-gradient(90deg, #7C3AED, #5B21B6);
-      box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
-    }
-    .progress {
-      height: 12px;
-      background: #3D3D5A;
-      border-radius: 6px;
-      margin-top: 20px;
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
-    }
-    .progress-bar {
-      background: linear-gradient(90deg, #6B46C1, #4C51BF);
-      box-shadow: 0 0 10px rgba(107, 70, 193, 0.3);
-      border-right: 3px solid #A5B4FC55;
-    }
-    .output {
-      margin-top: 30px;
-      color: #E6ECEF;
-      text-shadow: 0 0 5px rgba(230, 236, 239, 0.3);
-    }
-    #player, #outputText {
-      width: 100%;
-      background: linear-gradient(135deg, #3D3D5A, #4A4A70);
-      border: 2px solid #6B7280;
-      border-radius: 10px;
-      padding: 15px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
-    #outputText {
-      resize: vertical;
-      min-height: 150px;
-    }
-    .hidden {
-      display: none;
-    }
-    .features {
-      margin-top: 30px;
-      font-size: 0.95rem;
-      color: #A5C9FF;
-      text-shadow: 0 0 5px rgba(165, 201, 255, 0.3);
-    }
-    .feature-item {
-      margin-bottom: 15px;
-      padding-left: 15px;
-      border-left: 4px solid #6B46C1;
-      background: rgba(45, 45, 70, 0.9);
-      padding: 10px;
-      border-radius: 5px;
-      transition: transform 0.3s;
-    }
-    .feature-item:hover {
-      transform: translateX(10px);
-    }
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #A0AEC0;
-      font-size: 0.9rem;
-      background: linear-gradient(90deg, #2D2D44, #3A3A5A);
-      border-top: 1px solid #5A5A7A;
-      margin-top: auto;
-      animation: fadeIn 2s ease-in-out;
-    }
-    @keyframes fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
-    }
-    @media (max-width: 576px) {
-      .container { padding: 10px; }
-      .card { padding: 20px; }
-      .header img { max-width: 150px; }
-      .intro { font-size: 0.9rem; }
-      .footer { font-size: 0.8rem; }
-    }
+    .glass{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);}
+    .btn-primary{background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2));}
+    .btn-primary:hover{filter:brightness(1.1)}
+    .brand-chip{background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2));}
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="https://via.placeholder.com/200x70?text=PDF+AI" alt="PDF AI Logo" />
-    </div>
-    <div class="intro">
-      Transform your documents and audio with AI-powered processing. Extract, translate, and convert between text and speech with ease.<br>
-      <strong>Fast Processing | AI Powered | 20+ Languages</strong>
-    </div>
-    <div class="card">
-      <form id="toolForm" enctype="multipart/form-data">
-        <div class="form-group">
-          <label class="form-label">Choose Your Processing Mode</label>
-          <select class="form-control" id="mode" name="mode">
-            <option value="pdf_audio">PDF → Audio<br>Convert PDF text to speech</option>
-            <option value="pdf_translate">PDF → Translate<br>Extract and translate PDF text</option>
-            <option value="pdf_translate_audio">PDF → Translate → Audio<br>Translate PDF then convert to speech</option>
-            <option value="audio_text">Audio → Text<br>Convert speech to text</option>
-            <option value="audio_translate">Audio → Translate<br>Convert speech to text and translate</option>
-          </select>
+<body class="animated-bg min-h-screen text-slate-100 flex flex-col">
+  <!-- Header / Nav -->
+  <header class="w-full">
+    <div class="mx-auto max-w-6xl px-4 py-5 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group">
+        <!-- Logo -->
+        <div class="h-10 w-10 rounded-xl p-[2px] shadow-lg" style="background:linear-gradient(135deg,var(--logo-grad-1),var(--logo-grad-2))">
+          <div class="h-full w-full rounded-[10px] bg-slate-900/70 grid place-items-center">
+            <!-- inline icon (doc+wave) -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="opacity-95">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/>
+              <path d="M8 16c1.5-2 2.5 2 4 0s2.5-2 4 0"/>
+            </svg>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Target Language</label>
-          <select class="form-control" id="lang" name="lang">
-            <option value="en">English</option>
-            <option value="my">Myanmar</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="de">German</option>
-          </select>
+        <div>
+          <div class="text-xl font-extrabold tracking-tight leading-5">PDF&nbsp;AI</div>
+          <div class="text-xs text-slate-300/80 -mt-0.5">Transform • Translate • Speak</div>
         </div>
-        <div class="form-group" id="pdfInput">
-          <label class="form-label">1. Upload File</label>
-          <input type="file" class="form-control" id="pdf" name="pdf" accept="application/pdf" />
-          <div>No file chosen</div>
-        </div>
-        <div class="form-group hidden" id="audioInput">
-          <label class="form-label">1. Upload File</label>
-          <input type="file" class="form-control" id="audio" name="audio" accept="audio/*" />
-          <div>Drag & drop your audio file here, or click to browse<br>Supported: MP3, WAV, M4A, OGG</div>
-        </div>
-        <div class="form-group hidden" id="sttLangRow">
-          <label class="form-label">Speech Language</label>
-          <input type="text" class="form-control" id="stt_lang" name="stt_lang" placeholder="en-US (e.g., en-US, fr-FR)" value="en-US" />
-        </div>
-        <button type="submit" class="btn btn-primary">2. Process<br>Start Processing<br>Please upload a file first</button>
-        <div class="progress hidden" id="progressWrap">
-          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
-        </div>
-      </form>
-      <div class="output">
-        <div>Results</div>
-        <audio id="player" class="hidden" controls></audio>
-        <textarea id="outputText" class="form-control hidden" placeholder="Results will appear here<br>Upload a file and start processing to see results"></textarea>
-      </div>
-      <div class="features">
-        <div class="feature-item"><strong>Powerful AI Processing Features</strong></div>
-        <div class="feature-item">PDF Text Extraction<br>Extract text from any PDF document with OCR support</div>
-        <div class="feature-item">Multi-Language Translation<br>Translate between 20+ languages instantly</div>
-        <div class="feature-item">Text-to-Speech<br>Convert text to natural-sounding audio</div>
-        <div class="feature-item">Speech Recognition<br>Convert audio to accurate text transcription</div>
+      </a>
+      <div class="hidden md:flex items-center gap-2">
+        <span class="brand-chip text-xs font-semibold text-white px-3 py-1.5 rounded-full shadow">AI Powered</span>
+        <span class="text-sm text-slate-300">20+ Languages</span>
       </div>
     </div>
-    <div class="footer">
+  </header>
+
+  <!-- Hero -->
+  <section class="mx-auto max-w-6xl px-4 pb-6">
+    <div class="grid lg:grid-cols-2 gap-6 items-stretch">
+      <div class="glass rounded-2xl shadow-glass p-6 md:p-8 flex flex-col justify-center">
+        <h1 class="text-3xl md:text-4xl font-extrabold leading-tight">
+          Transform documents & audio with
+          <span class="bg-clip-text text-transparent" style="background-image:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">real‑time AI</span>
+        </h1>
+        <p class="mt-3 text-slate-200/90">Extract, translate, and convert between text and speech in a single, elegant tool. Fast. Accurate. Private.</p>
+        <ul class="mt-5 space-y-2 text-sm text-slate-200/90">
+          <li class="flex items-start gap-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 text-brand-300">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            PDF text extraction with OCR-ready pipeline
+          </li>
+          <li class="flex items-start gap-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 text-brand-300">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Multi‑language translation
+          </li>
+          <li class="flex items-start gap-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 text-brand-300">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Natural‑sounding text‑to‑speech
+          </li>
+          <li class="flex items-start gap-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 text-brand-300">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Accurate speech recognition
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card: Tool Form -->
+      <div class="glass rounded-2xl shadow-glass p-6 md:p-8">
+        <form id="toolForm" class="space-y-5" enctype="multipart/form-data">
+          <!-- Mode -->
+          <div>
+            <label class="block text-sm font-semibold mb-2" for="mode">Processing Mode</label>
+            <div class="relative">
+              <select id="mode" name="mode" class="w-full appearance-none rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                <option value="pdf_audio">PDF → Audio • Convert PDF text to speech</option>
+                <option value="pdf_translate">PDF → Translate • Extract & translate text</option>
+                <option value="pdf_translate_audio">PDF → Translate → Audio • Translate then speech</option>
+                <option value="audio_text">Audio → Text • Speech to text</option>
+                <option value="audio_translate">Audio → Translate • STT and translate</option>
+                <option value="audio_audio">Audio → Audio • Speak back in target language</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-300"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+          <!-- Target Language -->
+          <div>
+            <label class="block text-sm font-semibold mb-2" for="lang">Target Language</label>
+            <select id="lang" name="lang" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
+              <option value="en">English</option>
+              <option value="my">Myanmar</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="de">German</option>
+            </select>
+          </div>
+
+          <!-- PDF Input -->
+          <div id="pdfInput">
+            <label class="block text-sm font-semibold mb-2" for="pdf">1. Upload PDF</label>
+            <label class="group flex items-center justify-between gap-4 rounded-xl border border-dashed border-white/15 bg-slate-900/50 p-4 hover:border-brand-300 cursor-pointer">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold">Drag & drop your PDF here</div>
+                  <div class="text-xs text-slate-300">or click to browse • Max 10MB</div>
+                </div>
+              </div>
+              <input id="pdf" name="pdf" type="file" accept="application/pdf" class="sr-only" />
+              <span id="pdfName" class="text-xs text-slate-300">No file chosen</span>
+            </label>
+          </div>
+
+          <!-- Audio Input -->
+          <div id="audioInput" class="hidden">
+            <label class="block text-sm font-semibold mb-2" for="audio">1. Upload Audio</label>
+            <label class="group flex items-center justify-between gap-4 rounded-xl border border-dashed border-white/15 bg-slate-900/50 p-4 hover:border-brand-300 cursor-pointer">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 1v11"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M8 21h8"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold">Drag & drop your audio</div>
+                  <div class="text-xs text-slate-300">MP3, WAV, M4A, OGG • Max 10MB</div>
+                </div>
+              </div>
+              <input id="audio" name="audio" type="file" accept="audio/*" class="sr-only" />
+              <span id="audioName" class="text-xs text-slate-300">No file chosen</span>
+            </label>
+          </div>
+
+          <!-- STT language -->
+          <div id="sttLangRow" class="hidden">
+            <label for="stt_lang" class="block text-sm font-semibold mb-2">Speech Language (for STT)</label>
+            <input id="stt_lang" name="stt_lang" type="text" value="en-US" placeholder="e.g., en-US, fr-FR" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400"/>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-primary w-full rounded-xl py-3.5 font-semibold text-white shadow-lg active:scale-[.99] transition">2. Start Processing</button>
+
+          <!-- Progress -->
+          <div id="progressWrap" class="hidden h-2 w-full overflow-hidden rounded bg-white/10">
+            <div class="h-full w-0 bg-white/60 animate-[loader_2s_ease_infinite]"></div>
+          </div>
+          <style>
+            @keyframes loader{ 0%{width:0} 50%{width:80%} 100%{width:100%}}
+          </style>
+
+          <!-- Output -->
+          <div class="space-y-3 pt-2">
+            <audio id="player" class="hidden w-full" controls></audio>
+            <textarea id="outputText" class="hidden w-full min-h-[140px] rounded-xl bg-slate-900/60 border border-white/10 p-3 text-sm" placeholder="Results will appear here"></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features band -->
+  <section class="mx-auto max-w-6xl px-4 pb-10">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass rounded-xl p-4 flex items-start gap-3">
+        <div class="rounded-md p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div>
+          <div class="font-semibold">PDF Extraction</div>
+          <div class="text-xs text-slate-300">Pull clean text from complex PDFs.</div>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-4 flex items-start gap-3">
+        <div class="rounded-md p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </div>
+        <div>
+          <div class="font-semibold">Translate</div>
+          <div class="text-xs text-slate-300">20+ languages, auto‑detect.</div>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-4 flex items-start gap-3">
+        <div class="rounded-md p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 1v11"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M8 21h8"/></svg>
+        </div>
+        <div>
+          <div class="font-semibold">Text‑to‑Speech</div>
+          <div class="text-xs text-slate-300">Natural voices, quick output.</div>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-4 flex items-start gap-3">
+        <div class="rounded-md p-2" style="background:linear-gradient(90deg,var(--logo-grad-1),var(--logo-grad-2))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 5v6"/><rect x="9" y="11" width="6" height="8" rx="2"/></svg>
+        </div>
+        <div>
+          <div class="font-semibold">Speech‑to‑Text</div>
+          <div class="text-xs text-slate-300">Accurate recognition.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-slate-300">
       © A&T Group Strategy First AI Hackathon 2025
     </div>
-  </div>
+  </footer>
 
+  <!-- App Logic (kept compatible with your Flask endpoints) -->
   <script>
     const modeSel = document.getElementById('mode');
     const pdfInput = document.getElementById('pdfInput');
@@ -354,21 +317,22 @@ INDEX_HTML = """
     const outputText = document.getElementById('outputText');
     const pdfFileInput = document.getElementById('pdf');
     const audioFileInput = document.getElementById('audio');
+    const pdfName = document.getElementById('pdfName');
+    const audioName = document.getElementById('audioName');
 
-    function updateFormVisibility() {
+    function updateFormVisibility(){
       const m = modeSel.value;
       const pdfNeeded = (m === 'pdf_audio' || m === 'pdf_translate' || m === 'pdf_translate_audio');
       pdfInput.classList.toggle('hidden', !pdfNeeded);
       audioInput.classList.toggle('hidden', pdfNeeded);
-      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate'));
-      updateFileStatus();
+      sttLangRow.classList.toggle('hidden', !(m === 'audio_text' || m === 'audio_translate' || m === 'audio_audio'));
     }
 
-    function updateFileStatus() {
-      const pdfFile = pdfFileInput.files[0];
-      const audioFile = audioFileInput.files[0];
-      if (pdfFile) pdfInput.querySelector('div').textContent = pdfFile.name;
-      if (audioFile) audioInput.querySelector('div').textContent = audioFile.name;
+    function updateFileStatus(){
+      const p = pdfFileInput?.files?.[0];
+      const a = audioFileInput?.files?.[0];
+      if(p) pdfName.textContent = p.name; else pdfName.textContent = 'No file chosen';
+      if(a) audioName.textContent = a.name; else audioName.textContent = 'No file chosen';
     }
 
     modeSel.addEventListener('change', updateFormVisibility);
@@ -390,15 +354,15 @@ INDEX_HTML = """
 
       const fd = new FormData();
       if (m.startsWith('pdf')) {
-        const pdf = document.getElementById('pdf').files[0];
-        if (!pdf) { alert('Please choose a document.'); progressWrap.classList.add('hidden'); return; }
-        if (pdf.size > maxFileSize) { alert('Document file is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
+        const pdf = pdfFileInput.files[0];
+        if (!pdf) { alert('Please choose a PDF.'); progressWrap.classList.add('hidden'); return; }
+        if (pdf.size > maxFileSize) { alert('Document is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
         fd.append('pdf', pdf);
         fd.append('lang', lang);
       } else {
-        const audio = document.getElementById('audio').files[0];
+        const audio = audioFileInput.files[0];
         if (!audio) { alert('Please choose an audio file.'); progressWrap.classList.add('hidden'); return; }
-        if (audio.size > maxFileSize) { alert('Audio file is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
+        if (audio.size > maxFileSize) { alert('Audio is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
         fd.append('audio', audio);
         fd.append('lang', lang);
         fd.append('stt_lang', sttLang);
@@ -442,6 +406,7 @@ INDEX_HTML = """
   </script>
 </body>
 </html>
+
 """
 
 # ---------------- Helpers ----------------
@@ -653,4 +618,3 @@ if __name__ == '__main__':
     # Run Flask app (Render sets PORT via env var)
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
