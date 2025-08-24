@@ -1,3 +1,3 @@
-37b3a3e84df2350380b05b2af4dc97f5 *tests/data/lavf-fate/lavf.hevc.mp4
-151340 tests/data/lavf-fate/lavf.hevc.mp4
-tests/data/lavf-fate/lavf.hevc.mp4 CRC=0xc0a771de
+version https://git-lfs.github.com/spec/v1
+oid sha256:1fa6d53d4444794e24f17b008dadef7bb5eb86a4b451e1f9de16dc66d6847cc1
+size 164
