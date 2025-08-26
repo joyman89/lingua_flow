@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
+
 import logging
 import time
 from flask import Flask, request, send_file, jsonify, send_from_directory
@@ -21,7 +24,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'my-secret-key')
 
 # Supabase configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://lghuxjfcjetcakctrtry.supabase.co')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY')  # Must be set in Render environment variables
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 if not SUPABASE_KEY:
     raise ValueError("SUPABASE_KEY environment variable is not set")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
