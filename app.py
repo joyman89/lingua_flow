@@ -1,7 +1,7 @@
 import logging
 import time
 from flask import Flask, request, send_file, jsonify, send_from_directory
-from flask_cors import CORS  # This is already in your code
+from flask_cors import CORS
 from PyPDF2 import PdfReader
 from PyPDF2.errors import PdfReadError
 from deep_translator import GoogleTranslator
@@ -491,7 +491,7 @@ INDEX_HTML = """
           password,
           options: {
             data: { name },
-            emailRedirectTo: 'http://127.0.0.1:5000'
+            emailRedirectTo: 'https://lingua-flow.onrender.com'
           }
         });
         if (error) {
@@ -500,9 +500,6 @@ INDEX_HTML = """
         } else {
           flashMessages.innerHTML = '<p class="flash-success">Account created! Check your email for a confirmation link.</p>';
           await supabase.from('users').insert({ id: data.user.id, name, email });
-          await supabase.auth.signInWithPassword({ email, password });
-          checkAuth();
-          setTimeout(() => { authModal.style.display = 'none'; }, 1000);
         }
       } catch (e) {
         flashMessages.innerHTML = `<p class="flash-error">Network error: ${e.message}</p>`;
@@ -538,7 +535,7 @@ INDEX_HTML = """
       try {
         console.log('Requesting password reset for:', email);
         const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: 'http://127.0.0.1:5000'
+          redirectTo: 'https://lingua-flow.onrender.com'
         });
         if (error) {
           flashMessages.innerHTML = `<p class="flash-error">${error.message}</p>`;
@@ -575,23 +572,23 @@ INDEX_HTML = """
         if (!pdf) { alert('Please choose a PDF.'); progressWrap.classList.add('hidden'); return; }
         if (pdf.size > maxFileSize) { alert('Document is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
         fd.append('pdf', pdf);
-        fd.append('lang', lang);  # Ensure lang is always appended
+        if (m !== 'pdf_audio') fd.append('lang', lang);
       } else {
         const audio = audioFileInput.files[0];
         if (!audio) { alert('Please choose an audio file.'); progressWrap.classList.add('hidden'); return; }
         if (audio.size > maxFileSize) { alert('Audio is too large (max 10MB).'); progressWrap.classList.add('hidden'); return; }
         fd.append('audio', audio);
-        fd.append('lang', lang);
+        if (m !== 'audio_text') fd.append('lang', lang);
         fd.append('stt_lang', sttLang);
       }
 
       const endpoints = {
-        pdf_audio: '/pdf-to-audio',
-        pdf_translate: '/pdf-to-translate',
-        pdf_translate_audio: '/pdf-to-translate-audio',
-        audio_text: '/audio-to-text',
-        audio_translate: '/audio-to-translate',
-        audio_audio: '/audio-to-audio'
+        pdf_audio: 'https://lingua-flow.onrender.com/pdf-to-audio',
+        pdf_translate: 'https://lingua-flow.onrender.com/pdf-to-translate',
+        pdf_translate_audio: 'https://lingua-flow.onrender.com/pdf-to-translate-audio',
+        audio_text: 'https://lingua-flow.onrender.com/audio-to-text',
+        audio_translate: 'https://lingua-flow.onrender.com/audio-to-translate',
+        audio_audio: 'https://lingua-flow.onrender.com/audio-to-audio'
       };
 
       try {
