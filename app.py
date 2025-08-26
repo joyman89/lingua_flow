@@ -1,6 +1,7 @@
 import logging
 import time
 from flask import Flask, request, send_file, jsonify, send_from_directory
+from flask_cors import CORS
 from PyPDF2 import PdfReader
 from PyPDF2.errors import PdfReadError
 from deep_translator import GoogleTranslator
@@ -16,6 +17,7 @@ import jwt
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 app.secret_key = os.getenv('SECRET_KEY', 'my-secret-key')
 
 # Supabase configuration
@@ -429,8 +431,12 @@ INDEX_HTML = """
     // Check authentication status on load
     async function checkAuth() {
       const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) console.error('Auth check error:', error.message);
-      isAuthenticated = !!session;
+      if (error) {
+        console.error('Auth check error:', error.message);
+      } else {
+        isAuthenticated = !!session;
+        console.log('Session token:', session?.access_token); // Debug token
+      }
       authButton.style.display = isAuthenticated ? 'none' : 'inline-block';
       console.log('Auth checked, isAuthenticated:', isAuthenticated);
     }
@@ -489,7 +495,7 @@ INDEX_HTML = """
           password,
           options: {
             data: { name },
-            emailRedirectTo: 'http://127.0.0.1:5000'
+            emailRedirectTo: 'https://lingua-flow.onrender.com'
           }
         });
         if (error) {
@@ -533,7 +539,7 @@ INDEX_HTML = """
       try {
         console.log('Requesting password reset for:', email);
         const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: 'http://127.0.0.1:5000'
+          redirectTo: 'https://lingua-flow.onrender.com'
         });
         if (error) {
           flashMessages.innerHTML = `<p class="flash-error">${error.message}</p>`;
@@ -581,23 +587,33 @@ INDEX_HTML = """
       }
 
       const endpoints = {
-        pdf_audio: '/pdf-to-audio',
-        pdf_translate: '/pdf-to-translate',
-        pdf_translate_audio: '/pdf-to-translate-audio',
-        audio_text: '/audio-to-text',
-        audio_translate: '/audio-to-translate',
-        audio_audio: '/audio-to-audio'
+        pdf_audio: 'https://lingua-flow.onrender.com/pdf-to-audio',
+        pdf_translate: 'https://lingua-flow.onrender.com/pdf-to-translate',
+        pdf_translate_audio: 'https://lingua-flow.onrender.com/pdf-to-translate-audio',
+        audio_text: 'https://lingua-flow.onrender.com/audio-to-text',
+        audio_translate: 'https://lingua-flow.onrender.com/audio-to-translate',
+        audio_audio: 'https://lingua-flow.onrender.com/audio-to-audio'
       };
 
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        if (!session || !session.access_token) {
+          console.error('No valid session or token found');
+          showAuthModal('sign-in');
+          return;
+        }
         const res = await fetch(endpoints[m], {
           method: 'POST',
           body: fd,
-          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            // Ensure FormData headers aren't overridden
+            'Content-Type': 'multipart/form-data'
+          }
         });
         if (!res.ok) {
           const msg = await res.text();
+          console.error(`Fetch error: ${msg}`); // Debug the response
           alert(`Error: ${msg}`);
           progressWrap.classList.add('hidden');
           return;
@@ -628,6 +644,7 @@ INDEX_HTML = """
 
         await supabase.from('history').insert(historyEntry);
       } catch (e) {
+        console.error('Network or fetch error:', e); // Debug the error
         alert(`Network error: ${e.message}`);
       }
 
