@@ -11,18 +11,19 @@ from pydub import AudioSegment
 import tempfile
 import os
 from supabase import create_client, Client
-import jwt
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 app.secret_key = os.getenv('SECRET_KEY', 'my-secret-key')
 
 # Supabase configuration
-SUPABASE_URL = 'https://lghuxjfcjetcakctrtry.supabase.co'
-SUPABASE_KEY = 'mdt97FZc2uZnRAW9OS+Z0v6gfYdcSyGouoTX5dhK6SUHZI2Dp9z+OWbf6lKKMxH2hvQz5kfbXCGc0qcQCGLOsQ=='
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://lghuxjfcjetcakctrtry.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')  # Must be set in Render environment variables
+if not SUPABASE_KEY:
+    raise ValueError("SUPABASE_KEY environment variable is not set")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Constants
@@ -73,6 +74,17 @@ INDEX_HTML = """
     // Initialize Supabase client
     const supabase = window.supabase.createClient('https://lghuxjfcjetcakctrtry.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxnaHV4amZjamV0Y2FrY3RydHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMzk4NTMsImV4cCI6MjA3MTcxNTg1M30.iTqi2LDSsl4PuJ31qyCRtXXPZnld00ZCGUJLEiFOKtc');
     window.supabase = supabase;
+
+    // Refresh session to ensure valid token
+    async function refreshSession() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        console.error('Session refresh error:', error);
+        showAuthModal('sign-in');
+        return null;
+      }
+      return session.access_token;
+    }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -592,11 +604,17 @@ INDEX_HTML = """
       };
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const token = await refreshSession();
+        if (!token) {
+          alert('Session expired. Please log in again.');
+          progressWrap.classList.add('hidden');
+          return;
+        }
+        console.log('Sending JWT Token:', token);
         const res = await fetch(endpoints[m], {
           method: 'POST',
           body: fd,
-          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) {
           const msg = await res.text();
@@ -606,6 +624,7 @@ INDEX_HTML = """
         }
 
         // Log to history table
+        const { data: { session } } = await supabase.auth.getSession();
         const historyEntry = {
           user_id: session.user.id,
           mode: m,
@@ -657,13 +676,14 @@ INDEX_HTML = """
 # Middleware to verify JWT
 def verify_jwt():
     auth_header = request.headers.get('Authorization')
-    logging.info(f"Authorization header: {auth_header}")
+    logging.debug(f"Authorization header: {auth_header}")
     if not auth_header or not auth_header.startswith('Bearer '):
         return None, "Missing or invalid Authorization header"
     token = auth_header.split(' ')[1]
+    logging.debug(f"JWT Token: {token}")
     try:
         response = supabase.auth.get_user(token)
-        logging.info(f"Supabase get_user response: {response}")
+        logging.debug(f"Supabase get_user response: {response}")
         if response.user:
             return response.user.id, None
         return None, "Invalid token or user not found"
@@ -759,6 +779,7 @@ def pdf_to_audio():
     user_id, error = verify_jwt()
     if error:
         return jsonify({"error": error}), 401
+    mp3_path = None
     try:
         pdf = request.files.get('pdf')
         lang = request.form.get('lang', 'en')
@@ -777,10 +798,11 @@ def pdf_to_audio():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     finally:
-        try:
-            os.unlink(mp3_path)
-        except Exception:
-            pass
+        if mp3_path:
+            try:
+                os.unlink(mp3_path)
+            except Exception as e:
+                logging.error(f"Failed to delete temp file {mp3_path}: {e}")
 
 @app.route('/pdf-to-translate', methods=['POST'])
 def pdf_to_translate():
@@ -811,6 +833,7 @@ def pdf_to_translate_audio():
     user_id, error = verify_jwt()
     if error:
         return jsonify({"error": error}), 401
+    mp3_path = None
     try:
         pdf = request.files.get('pdf')
         target = request.form.get('lang', 'en')
@@ -831,10 +854,11 @@ def pdf_to_translate_audio():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     finally:
-        try:
-            os.unlink(mp3_path)
-        except Exception:
-            pass
+        if mp3_path:
+            try:
+                os.unlink(mp3_path)
+            except Exception as e:
+                logging.error(f"Failed to delete temp file {mp3_path}: {e}")
 
 @app.route('/audio-to-text', methods=['POST'])
 def audio_to_text():
@@ -893,6 +917,7 @@ def audio_to_audio():
     user_id, error = verify_jwt()
     if error:
         return jsonify({"error": error}), 401
+    mp3_path = None
     try:
         audio = request.files.get('audio')
         stt_lang = request.form.get('stt_lang', 'en-US')
@@ -917,10 +942,11 @@ def audio_to_audio():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     finally:
-        try:
-            os.unlink(mp3_path)
-        except Exception:
-            pass
+        if mp3_path:
+            try:
+                os.unlink(mp3_path)
+            except Exception as e:
+                logging.error(f"Failed to delete temp file {mp3_path}: {e}")
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
