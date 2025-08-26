@@ -676,6 +676,16 @@ INDEX_HTML = """
 </html>
 """
 
+# Debug route to check environment variables
+@app.route('/debug-env')
+def debug_env():
+    return jsonify({
+        'SUPABASE_KEY': bool(os.getenv('SUPABASE_KEY')),
+        'SUPABASE_URL': os.getenv('SUPABASE_URL'),
+        'SECRET_KEY': os.getenv('SECRET_KEY'),
+        'PORT': os.getenv('PORT')
+    })
+
 # Middleware to verify JWT
 def verify_jwt():
     auth_header = request.headers.get('Authorization')
